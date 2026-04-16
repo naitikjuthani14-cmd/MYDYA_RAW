@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mydya – Mumbai's Premier Rickshaw Advertising</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #FAF7F2; }
+
+    .nav-a {
+      font-family: 'Jost', sans-serif; font-size: 0.7rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: #8B6A3E; text-decoration: none; transition: color 0.2s;
+    }
+    .nav-a:hover { color: #5C3D11; }
+
+    .btn-dark {
+      background: #3D2B0A; color: #F5EDD8; border: none;
+      padding: 0.9rem 2.2rem; font-family: 'Jost', sans-serif;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; cursor: pointer; transition: all 0.25s;
+    }
+    .btn-dark:hover { background: #5C3D11; transform: translateY(-1px); box-shadow: 0 10px 28px rgba(61,43,10,0.25); }
+
+    .btn-ghost {
+      background: transparent; color: #5C3D11;
+      border: 1px solid #C8A97A; padding: 0.9rem 2.2rem;
+      font-family: 'Jost', sans-serif; font-size: 0.7rem;
+      font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.25s;
+    }
+    .btn-ghost:hover { background: #3D2B0A; color: #F5EDD8; border-color: #3D2B0A; }
+
+    .route-tab {
+      background: transparent; border: 1px solid #DDD0BC;
+      color: #8B6A3E; padding: 0.6rem 1.2rem;
+      font-family: 'Jost', sans-serif; font-size: 0.68rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .route-tab.active { background: #3D2B0A; border-color: #3D2B0A; color: #F5EDD8; }
+    .route-tab:hover:not(.active) { border-color: #8B6A3E; color: #3D2B0A; }
+
+    .pkg {
+      border: 1px solid #E0D4C0; background: #FAF7F2;
+      padding: 2.5rem 2rem; transition: all 0.3s; position: relative;
+    }
+    .pkg:hover { border-color: #C8A97A; box-shadow: 0 16px 48px rgba(61,43,10,0.08); transform: translateY(-4px); }
+    .pkg.featured { background: #3D2B0A; border-color: #3D2B0A; }
+
+    .field {
+      background: #F2EBE0; border: 1px solid #DDD0BC; color: #2A1F0A;
+      padding: 0.9rem 1.25rem; font-family: 'Jost', sans-serif;
+      font-size: 0.875rem; width: 100%; outline: none; transition: border-color 0.2s;
+    }
+    .field:focus { border-color: #8B6A3E; }
+    .field::placeholder { color: #B8936A; }
+
+    .step-card {
+      padding: 2.5rem; background: #FAF7F2; border: 1px solid #E0D4C0;
+      position: relative; overflow: hidden; transition: box-shadow 0.3s;
+    }
+    .step-card:hover { box-shadow: 0 16px 48px rgba(61,43,10,0.09); }
+
+    .footer-link {
+      font-family: 'Jost', sans-serif; font-size: 0.68rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(200,169,110,0.45); text-decoration: none; transition: color 0.2s;
+    }
+    .footer-link:hover { color: #C8A96E; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-14px) rotate(1.5deg); }
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .h1 { animation: fadeUp 0.9s 0.1s both; }
+    .hsub { animation: fadeUp 0.9s 0.3s both; }
+    .hcta { animation: fadeUp 0.9s 0.5s both; }
+    .rick { animation: float 5s ease-in-out infinite; }
+
+    @media (max-width: 768px) {
+      .hero-flex { flex-direction: column !important; }
+      .stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+      .pkgs { grid-template-columns: 1fr !important; }
+      .steps { grid-template-columns: 1fr !important; }
+      .two { grid-template-columns: 1fr !important; gap: 3rem !important; }
+      .route-detail { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const ROUTES = [
+      { name: "Dharavi → BKC", rickshaws: 1200, impressions: "84K" },
+      { name: "Govandi → Kurla", rickshaws: 980, impressions: "68K" },
+      { name: "Andheri → Bandra", rickshaws: 1450, impressions: "1.01L" },
+      { name: "Ghatkopar → Powai", rickshaws: 760, impressions: "53K" },
+      { name: "Chembur → Sion", rickshaws: 890, impressions: "62K" },
+    ];
+
+    const PACKAGES = [
+      {
+        name: "Starter",
+        price: "₹4,999",
+        period: "/ month",
+        features: ["1 City Route", "500+ Rickshaws", "Basic Design Support", "Monthly Report"],
+        popular: false,
+      },
+      {
+        name: "Growth",
+        price: "₹12,999",
+        period: "/ month",
+        features: ["3 City Routes", "1,500+ Rickshaws", "Creative Design Included", "Weekly Analytics", "Priority Support"],
+        popular: true,
+      },
+      {
+        name: "Citywide",
+        price: "₹29,999",
+        period: "/ month",
+        features: ["8 City Routes", "4,000+ Rickshaws", "Full Creative Suite", "Real-time Dashboard", "Dedicated Manager"],
+        popular: false,
+      },
+    ];
+
+    const STATS = [
+      { end: 4000, suffix: "+", label: "Autorickshaws" },
+      { end: 280, suffix: "K+", label: "Daily Impressions" },
+      { end: 12, suffix: "+", label: "Mumbai Routes" },
+      { end: 98, suffix: "%", label: "Client Retention" },
+    ];
+
+    function useCountUp(end, started) {
+      const [val, setVal] = useState(0);
+      useEffect(() => {
+        if (!started) return;
+        let raf;
+        const duration = 1800;
+        const startTime = performance.now();
+        const tick = (now) => {
+          const t = Math.min((now - startTime) / duration, 1);
+          const ease = 1 - Math.pow(1 - t, 4);
+          setVal(Math.floor(ease * end));
+          if (t < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+      }, [end, started]);
+      return val;
+    }
+
+    function Stat({ end, suffix, label, started }) {
+      const v = useCountUp(end, started);
+      return (
+        <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
+          <div style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontWeight: 300,
+            fontSize: "clamp(2.8rem, 5vw, 4.5rem)",
+            color: "#3D2B0A",
+            lineHeight: 1,
+          }}>
+            {v.toLocaleString()}{suffix}
+          </div>
+          <div style={{
+            fontFamily: "'Jost', sans-serif",
+            fontSize: "0.68rem",
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
+            color: "#B8936A",
+            marginTop: "0.6rem",
+          }}>{label}</div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [activeRoute, setActiveRoute] = useState(0);
+      const [scroll, setScroll] = useState(0);
+      const [statsOn, setStatsOn] = useState(false);
+      const statsRef = useRef(null);
+
+      useEffect(() => {
+        const onScroll = () => setScroll(window.scrollY);
+        window.addEventListener("scroll", onScroll);
+        return () => window.removeEventListener("scroll", onScroll);
+      }, []);
+
+      useEffect(() => {
+        const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStatsOn(true); }, { threshold: 0.3 });
+        if (statsRef.current) obs.observe(statsRef.current);
+        return () => obs.disconnect();
+      }, []);
+
+      return (
+        <div style={{ background: "#FAF7F2", color: "#2A1F0A", fontFamily: "'Jost', sans-serif", overflowX: "hidden" }}>
+
+          {/* NAV */}
+          <nav style={{
+            position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+            padding: "1.25rem 2.5rem",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            background: scroll > 80 ? "rgba(250,247,242,0.95)" : "transparent",
+            backdropFilter: scroll > 80 ? "blur(16px)" : "none",
+            borderBottom: scroll > 80 ? "1px solid #E0D4C0" : "none",
+            transition: "all 0.35s",
+          }}>
+            <div style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontWeight: 500, fontSize: "1.65rem",
+              letterSpacing: "0.18em", color: "#3D2B0A",
+            }}>MYDYA</div>
+            <div style={{ display: "flex", gap: "2.5rem", alignItems: "center" }}>
+              <a href="#how" className="nav-a">How It Works</a>
+              <a href="#routes" className="nav-a">Routes</a>
+              <a href="#pricing" className="nav-a">Pricing</a>
+              <button className="btn-dark" style={{ padding: "0.65rem 1.5rem", fontSize: "0.67rem" }}>Get Started</button>
+            </div>
+          </nav>
+
+          {/* HERO */}
+          <section style={{
+            minHeight: "100vh",
+            display: "flex", alignItems: "center",
+            padding: "8rem 2.5rem 5rem",
+            position: "relative", overflow: "hidden",
+            background: "linear-gradient(155deg, #FAF7F2 0%, #F0E6D4 55%, #E8DCCA 100%)",
+          }}>
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: `
+                radial-gradient(ellipse 55% 55% at 72% 38%, rgba(200,169,110,0.15) 0%, transparent 65%),
+                radial-gradient(ellipse 35% 40% at 18% 72%, rgba(139,106,62,0.08) 0%, transparent 60%)
+              `,
+            }} />
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.35,
+              backgroundImage: `linear-gradient(#DDD0BC 1px, transparent 1px), linear-gradient(90deg, #DDD0BC 1px, transparent 1px)`,
+              backgroundSize: "80px 80px",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%)",
+              maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%)",
+            }} />
+
+            <div className="hero-flex" style={{
+              maxWidth: "1200px", margin: "0 auto", width: "100%",
+              display: "flex", alignItems: "center", gap: "5rem",
+            }}>
+              <div style={{ flex: "0 0 54%" }}>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: "0.6rem",
+                  border: "1px solid #DDD0BC", padding: "0.45rem 1.1rem",
+                  marginBottom: "2.5rem", fontSize: "0.67rem", letterSpacing: "0.22em",
+                  textTransform: "uppercase", color: "#8B6A3E",
+                  background: "rgba(250,247,242,0.7)",
+                }}>
+                  <span style={{ width: 5, height: 5, background: "#C8A97A", borderRadius: "50%", display: "inline-block" }} />
+                  Mumbai's Premier Rickshaw Advertising
+                </div>
+
+                <h1 className="h1" style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontWeight: 300,
+                  fontSize: "clamp(3.2rem, 7vw, 6.8rem)",
+                  lineHeight: 0.97, color: "#2A1F0A", letterSpacing: "0.01em",
+                  marginBottom: "0.15em",
+                }}>
+                  Your Brand,<br />
+                  <em style={{ color: "#8B6A3E", fontStyle: "italic" }}>Moving</em><br />
+                  Through Mumbai
+                </h1>
+
+                <div style={{ width: 44, height: 1, background: "#C8A97A", margin: "1.75rem 0" }} />
+
+                <p className="hsub" style={{
+                  fontSize: "1rem", color: "#6B4F28", lineHeight: 1.85,
+                  maxWidth: "460px", marginBottom: "2.75rem", fontWeight: 300,
+                }}>
+                  Reach lakhs of Mumbaikars daily through autorickshaw meter advertising — hyper-local, unmissable, and deeply affordable.
+                </p>
+
+                <div className="hcta" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                  <button className="btn-dark">Start Advertising</button>
+                  <button className="btn-ghost">View Routes</button>
+                </div>
+
+                <div style={{
+                  display: "flex", gap: "3rem",
+                  marginTop: "3.5rem", paddingTop: "2.5rem",
+                  borderTop: "1px solid #E0D4C0",
+                }}>
+                  {[["4,000+", "Rickshaws"], ["12+", "Routes"], ["₹4,999", "From / mo"]].map(([v, l]) => (
+                    <div key={l}>
+                      <div style={{
+                        fontFamily: "'Cormorant Garamond', serif", fontWeight: 500,
+                        fontSize: "1.9rem", color: "#3D2B0A", lineHeight: 1,
+                      }}>{v}</div>
+                      <div style={{
+                        fontSize: "0.63rem", letterSpacing: "0.22em",
+                        textTransform: "uppercase", color: "#B8936A", marginTop: "0.4rem",
+                      }}>{l}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right – visual */}
+              <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}>
+                <div style={{ position: "absolute", width: 360, height: 360, border: "1px solid rgba(200,169,110,0.25)", borderRadius: "50%" }} />
+                <div style={{ position: "absolute", width: 260, height: 260, border: "1px solid rgba(200,169,110,0.4)", borderRadius: "50%" }} />
+                <div style={{ position: "absolute", width: 450, height: 450, border: "1px dashed rgba(200,169,110,0.12)", borderRadius: "50%" }} />
+                <span className="rick" style={{
+                  fontSize: "clamp(5rem, 14vw, 11rem)",
+                  filter: "drop-shadow(0 24px 56px rgba(139,106,62,0.22))",
+                }}>🛺</span>
+                {[
+                  { top: "8%", right: "2%", route: "Andheri → Bandra", count: "1,450 rickshaws" },
+                  { bottom: "12%", left: "-4%", route: "Govandi → Kurla", count: "980 rickshaws" },
+                ].map((b) => (
+                  <div key={b.route} style={{
+                    position: "absolute", top: b.top, bottom: b.bottom, left: b.left, right: b.right,
+                    background: "rgba(250,247,242,0.92)", backdropFilter: "blur(12px)",
+                    border: "1px solid #E0D4C0", padding: "0.85rem 1.1rem",
+                    boxShadow: "0 8px 24px rgba(61,43,10,0.07)", minWidth: "160px",
+                  }}>
+                    <div style={{ fontSize: "0.7rem", fontWeight: 600, color: "#5C3D11", letterSpacing: "0.05em" }}>{b.route}</div>
+                    <div style={{ fontSize: "0.63rem", color: "#B8936A", marginTop: "0.2rem" }}>{b.count}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* TICKER */}
+          <div style={{ background: "#3D2B0A", padding: "0.85rem 0", overflow: "hidden" }}>
+            <div style={{ display: "flex", gap: "4rem", animation: "ticker 26s linear infinite", width: "max-content" }}>
+              {[...Array(10)].map((_, i) => (
+                <span key={i} style={{
+                  fontFamily: "'Jost', sans-serif", fontSize: "0.68rem",
+                  letterSpacing: "0.3em", textTransform: "uppercase",
+                  color: "#C8A97A", whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: "1.5rem",
+                }}>
+                  <span style={{ width: 4, height: 4, background: "#C8A97A", borderRadius: "50%", flexShrink: 0 }} />
+                  Reach Lakhs Daily
+                  <span style={{ width: 4, height: 4, background: "#C8A97A", borderRadius: "50%", flexShrink: 0 }} />
+                  Mumbai Streets
+                  <span style={{ width: 4, height: 4, background: "#C8A97A", borderRadius: "50%", flexShrink: 0 }} />
+                  Autorickshaw Meters
+                  <span style={{ width: 4, height: 4, background: "#C8A97A", borderRadius: "50%", flexShrink: 0 }} />
+                  Govandi · Kurla · BKC · Andheri
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* STATS */}
+          <section ref={statsRef} style={{ padding: "5rem 2.5rem", background: "#FAF7F2" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <div className="stats-grid" style={{
+                display: "grid", gridTemplateColumns: "repeat(4,1fr)",
+                borderTop: "1px solid #E0D4C0", borderLeft: "1px solid #E0D4C0",
+              }}>
+                {STATS.map((s) => (
+                  <div key={s.label} style={{ borderRight: "1px solid #E0D4C0", borderBottom: "1px solid #E0D4C0" }}>
+                    <Stat {...s} started={statsOn} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* HOW IT WORKS */}
+          <section id="how" style={{ padding: "6rem 2.5rem", background: "#F2EBE0" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "5rem", maxWidth: "520px" }}>
+                <div style={{ fontFamily: "'Jost'", fontSize: "0.65rem", letterSpacing: "0.35em", textTransform: "uppercase", color: "#8B6A3E", marginBottom: "0.75rem" }}>How It Works</div>
+                <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: "clamp(2.2rem, 4vw, 3.6rem)", color: "#3D2B0A", lineHeight: 1.05 }}>
+                  On the streets<br /><em style={{ color: "#8B6A3E" }}>in three steps</em>
+                </h2>
+              </div>
+              <div className="steps" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1.5rem" }}>
+                {[
+                  { n: "01", icon: "🗺️", title: "Choose Your Route", desc: "Pick from 12+ high-traffic Mumbai corridors. Filter by neighbourhood, footfall, and daily reach data to reach your exact audience." },
+                  { n: "02", icon: "🎨", title: "Design Your Ad", desc: "Upload your artwork or let our in-house team craft a high-contrast meter ad that stands out in traffic — delivered in 48 hours." },
+                  { n: "03", icon: "📊", title: "Launch & Track", desc: "Your ads hit the streets within 72 hours. Monitor impressions, routes, and performance through clean monthly reports." },
+                ].map((s) => (
+                  <div key={s.n} className="step-card">
+                    <div style={{
+                      position: "absolute", top: "-1.5rem", right: "0.75rem",
+                      fontFamily: "'Cormorant Garamond', serif", fontWeight: 300,
+                      fontSize: "7rem", color: "rgba(200,169,110,0.12)",
+                      lineHeight: 1, userSelect: "none",
+                    }}>{s.n}</div>
+                    <div style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>{s.icon}</div>
+                    <div style={{ fontFamily: "'Jost'", fontSize: "0.6rem", letterSpacing: "0.3em", color: "#C8A97A", textTransform: "uppercase", marginBottom: "0.5rem" }}>Step {s.n}</div>
+                    <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500, fontSize: "1.4rem", color: "#3D2B0A", marginBottom: "0.75rem" }}>{s.title}</h3>
+                    <p style={{ color: "#6B4F28", fontSize: "0.875rem", lineHeight: 1.8, fontWeight: 300 }}>{s.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ROUTES */}
+          <section id="routes" style={{ padding: "6rem 2.5rem", background: "#FAF7F2" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "4rem" }}>
+                <div style={{ fontFamily: "'Jost'", fontSize: "0.65rem", letterSpacing: "0.35em", textTransform: "uppercase", color: "#8B6A3E", marginBottom: "0.75rem" }}>Coverage</div>
+                <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: "clamp(2.2rem, 4vw, 3.6rem)", color: "#3D2B0A", lineHeight: 1.05 }}>
+                  Active Mumbai<br /><em style={{ color: "#8B6A3E" }}>Routes</em>
+                </h2>
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "2.5rem" }}>
+                {ROUTES.map((r, i) => (
+                  <button key={r.name} className={`route-tab ${activeRoute === i ? "active" : ""}`} onClick={() => setActiveRoute(i)}>{r.name}</button>
+                ))}
+              </div>
+              <div className="route-detail" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", border: "1px solid #E0D4C0" }}>
+                <div style={{ padding: "3rem", borderRight: "1px solid #E0D4C0" }}>
+                  <div style={{ fontFamily: "'Jost'", fontSize: "0.63rem", letterSpacing: "0.28em", textTransform: "uppercase", color: "#B8936A", marginBottom: "0.6rem" }}>Selected Route</div>
+                  <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500, fontSize: "2.2rem", color: "#3D2B0A", marginBottom: "0.4rem" }}>{ROUTES[activeRoute].name}</h3>
+                  <p style={{ fontSize: "0.72rem", color: "#B8936A", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "2.5rem" }}>High-Traffic Corridor · Mumbai</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "2.5rem" }}>
+                    {[
+                      ["🛺", ROUTES[activeRoute].rickshaws.toLocaleString(), "Rickshaws"],
+                      ["👁", ROUTES[activeRoute].impressions, "Daily Impressions"],
+                    ].map(([icon, val, lbl]) => (
+                      <div key={lbl} style={{ background: "#F2EBE0", border: "1px solid #E0D4C0", padding: "1.5rem 1.25rem" }}>
+                        <div style={{ fontSize: "1.2rem", marginBottom: "0.5rem" }}>{icon}</div>
+                        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500, fontSize: "2rem", color: "#3D2B0A" }}>{val}</div>
+                        <div style={{ fontSize: "0.63rem", color: "#B8936A", letterSpacing: "0.15em", textTransform: "uppercase" }}>{lbl}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="btn-dark">Advertise on This Route</button>
+                </div>
+                <div style={{
+                  background: "#F2EBE0", minHeight: "320px",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  position: "relative", overflow: "hidden",
+                }}>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    backgroundImage: `linear-gradient(rgba(200,169,110,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(200,169,110,0.18) 1px, transparent 1px)`,
+                    backgroundSize: "40px 40px",
+                  }} />
+                  <div style={{ position: "relative", textAlign: "center" }}>
+                    <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>🗺️</div>
+                    <div style={{ fontSize: "0.63rem", letterSpacing: "0.25em", textTransform: "uppercase", color: "#B8936A" }}>Interactive Map</div>
+                    <div style={{ fontSize: "0.72rem", color: "#8B6A3E", marginTop: "0.25rem" }}>{ROUTES[activeRoute].name}</div>
+                  </div>
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} style={{
+                      position: "absolute", width: 8, height: 8,
+                      background: "#8B6A3E", borderRadius: "50%",
+                      top: `${15 + i * 12}%`, left: `${22 + i * 10}%`,
+                      boxShadow: "0 0 10px rgba(139,106,62,0.5)",
+                    }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* WHY MYDYA */}
+          <section style={{ padding: "6rem 2.5rem", background: "#F2EBE0" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <div className="two" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6rem", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontFamily: "'Jost'", fontSize: "0.65rem", letterSpacing: "0.35em", textTransform: "uppercase", color: "#8B6A3E", marginBottom: "0.75rem" }}>Why Mydya</div>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: "clamp(2.2rem, 4vw, 3.4rem)", color: "#3D2B0A", lineHeight: 1.05, marginBottom: "3rem" }}>
+                    Advertising that<br /><em style={{ color: "#8B6A3E" }}>moves with the city</em>
+                  </h2>
+                  {[
+                    { icon: "📍", title: "Hyper-Local Targeting", desc: "Choose exact neighbourhoods. Your ad travels within 3km of your customers' daily routes." },
+                    { icon: "💰", title: "1/10th the Cost of Billboards", desc: "Equal or greater impressions at a fraction of static billboard pricing across Mumbai." },
+                    { icon: "⚡", title: "72-Hour Launch", desc: "From sign-up to streets in three days. No delays, no long-term lock-ins." },
+                    { icon: "📋", title: "Monthly Performance Reports", desc: "Route-wise impressions, estimated reach, and creative recommendations every month." },
+                  ].map((f) => (
+                    <div key={f.title} style={{ display: "flex", gap: "1.25rem", padding: "1.4rem 0", borderBottom: "1px solid #E0D4C0", alignItems: "flex-start" }}>
+                      <span style={{ fontSize: "1.25rem", flexShrink: 0, marginTop: "0.1rem" }}>{f.icon}</span>
+                      <div>
+                        <div style={{ fontWeight: 500, fontSize: "0.9rem", color: "#3D2B0A", marginBottom: "0.3rem" }}>{f.title}</div>
+                        <div style={{ fontSize: "0.85rem", color: "#6B4F28", lineHeight: 1.75, fontWeight: 300 }}>{f.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Testimonials */}
+                <div style={{ background: "#FAF7F2", border: "1px solid #E0D4C0", padding: "3rem", position: "relative" }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "4.5rem", color: "#E8DCCA", lineHeight: 0.75, marginBottom: "1.5rem" }}>"</div>
+                  {[
+                    { q: "Doubled our walk-in customers in Govandi within the first month. Truly remarkable reach.", name: "Riya Shah", biz: "Riya's Kitchen, Govandi" },
+                    { q: "The most affordable way to reach our neighbourhood. Simple, fast, and it actually works.", name: "Arjun Mehta", biz: "AM Auto Parts, Kurla" },
+                  ].map((t, i) => (
+                    <div key={i} style={{ padding: "1.5rem 0", borderBottom: i === 0 ? "1px solid #E0D4C0" : "none", marginBottom: i === 0 ? "1.5rem" : 0 }}>
+                      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.05rem", fontStyle: "italic", color: "#3D2B0A", lineHeight: 1.75, marginBottom: "1rem" }}>{t.q}</p>
+                      <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#5C3D11", letterSpacing: "0.08em" }}>{t.name}</div>
+                      <div style={{ fontSize: "0.68rem", color: "#B8936A", marginTop: "0.15rem" }}>{t.biz}</div>
+                    </div>
+                  ))}
+                  <div style={{
+                    position: "absolute", top: -1, right: -1, width: 56, height: 56,
+                    background: "#C8A97A", display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ fontSize: "1.4rem" }}>🛺</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* PRICING */}
+          <section id="pricing" style={{ padding: "6rem 2.5rem", background: "#FAF7F2" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <div style={{ textAlign: "center", marginBottom: "5rem" }}>
+                <div style={{ fontFamily: "'Jost'", fontSize: "0.65rem", letterSpacing: "0.35em", textTransform: "uppercase", color: "#8B6A3E", marginBottom: "0.75rem" }}>Pricing</div>
+                <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: "clamp(2.2rem, 4vw, 3.6rem)", color: "#3D2B0A", lineHeight: 1.05 }}>
+                  Transparent pricing,<br /><em style={{ color: "#8B6A3E" }}>no surprises</em>
+                </h2>
+              </div>
+              <div className="pkgs" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1.5rem" }}>
+                {PACKAGES.map((p) => (
+                  <div key={p.name} className={`pkg ${p.popular ? "featured" : ""}`}>
+                    {p.popular && (
+                      <div style={{
+                        position: "absolute", top: -1, left: "50%", transform: "translateX(-50%)",
+                        background: "#C8A97A", color: "#3D2B0A",
+                        fontSize: "0.6rem", letterSpacing: "0.2em",
+                        padding: "0.3rem 1.1rem", fontWeight: 600, textTransform: "uppercase",
+                        fontFamily: "'Jost', sans-serif",
+                      }}>Most Popular</div>
+                    )}
+                    <div style={{ fontFamily: "'Jost'", fontSize: "0.63rem", letterSpacing: "0.3em", textTransform: "uppercase", color: p.popular ? "#C8A97A" : "#B8936A", marginBottom: "1.25rem" }}>{p.name}</div>
+                    <div>
+                      <span style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: "3rem", color: p.popular ? "#F5EDD8" : "#3D2B0A", lineHeight: 1 }}>{p.price}</span>
+                      <span style={{ fontSize: "0.78rem", color: p.popular ? "rgba(245,237,216,0.5)" : "#B8936A", marginLeft: "0.4rem" }}>{p.period}</span>
+                    </div>
+                    <div style={{ margin: "2rem 0", paddingTop: "1.5rem", borderTop: `1px solid ${p.popular ? "rgba(200,169,122,0.2)" : "#E0D4C0"}` }}>
+                      {p.features.map((f) => (
+                        <div key={f} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.5rem 0", fontSize: "0.85rem", color: p.popular ? "#E8DCCA" : "#5C3D11", fontWeight: 300 }}>
+                          <span style={{ color: "#C8A97A", fontSize: "0.48rem" }}>◆</span>
+                          {f}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      style={{
+                        width: "100%", padding: "0.9rem",
+                        background: p.popular ? "#C8A97A" : "transparent",
+                        color: p.popular ? "#3D2B0A" : "#5C3D11",
+                        border: `1px solid #C8A97A`,
+                        fontFamily: "'Jost', sans-serif", fontSize: "0.68rem",
+                        fontWeight: 600, letterSpacing: "0.2em",
+                        textTransform: "uppercase", cursor: "pointer", transition: "all 0.25s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "#3D2B0A"; e.currentTarget.style.color = "#F5EDD8"; e.currentTarget.style.borderColor = "#3D2B0A"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = p.popular ? "#C8A97A" : "transparent"; e.currentTarget.style.color = p.popular ? "#3D2B0A" : "#5C3D11"; e.currentTarget.style.borderColor = "#C8A97A"; }}
+                    >
+                      Choose {p.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CONTACT */}
+          <section id="contact" style={{ padding: "6rem 2.5rem", background: "#F2EBE0" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <div className="two" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6rem" }}>
+                <div>
+                  <div style={{ fontFamily: "'Jost'", fontSize: "0.65rem", letterSpacing: "0.35em", textTransform: "uppercase", color: "#8B6A3E", marginBottom: "0.75rem" }}>Contact</div>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: "clamp(2.2rem, 4vw, 3.4rem)", color: "#3D2B0A", lineHeight: 1.05, marginBottom: "1.5rem" }}>
+                    Ready to hit<br /><em style={{ color: "#8B6A3E" }}>the streets?</em>
+                  </h2>
+                  <p style={{ color: "#6B4F28", lineHeight: 1.85, fontWeight: 300, marginBottom: "3rem", maxWidth: "360px", fontSize: "0.95rem" }}>
+                    Drop us a message or visit us in Govandi East. We'll respond within 24 hours with a custom route recommendation.
+                  </p>
+                  {[
+                    ["📍", "Govandi East, Mumbai, MH 400088"],
+                    ["📞", "+91 99303 39468"],
+                    ["🕐", "Mon – Fri · 9 AM – 5 PM"],
+                    ["🌐", "mydya.in"],
+                  ].map(([icon, val]) => (
+                    <div key={val} style={{ display: "flex", gap: "1rem", alignItems: "center", padding: "0.85rem 0", borderBottom: "1px solid #E0D4C0", fontSize: "0.875rem", color: "#5C3D11", fontWeight: 300 }}>
+                      <span>{icon}</span><span>{val}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                    <input className="field" placeholder="Your Name" />
+                    <input className="field" placeholder="Business Name" />
+                  </div>
+                  <input className="field" placeholder="Phone Number" />
+                  <input className="field" placeholder="Email Address" />
+                  <select className="field" style={{ cursor: "pointer" }}>
+                    <option value="" style={{ background: "#F2EBE0" }}>Select a Route</option>
+                    {ROUTES.map((r) => <option key={r.name} value={r.name} style={{ background: "#F2EBE0" }}>{r.name}</option>)}
+                  </select>
+                  <textarea className="field" placeholder="Tell us about your campaign goals..." rows={4} style={{ resize: "vertical" }} />
+                  <button className="btn-dark" style={{ alignSelf: "flex-start" }}>Send Enquiry →</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* FOOTER */}
+          <footer style={{ background: "#3D2B0A", padding: "3rem 2.5rem" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500, fontSize: "1.6rem", letterSpacing: "0.18em", color: "#C8A97A" }}>MYDYA</div>
+              <div style={{ fontSize: "0.72rem", color: "rgba(200,169,122,0.38)", letterSpacing: "0.1em" }}>© 2026 Mydya · Govandi East, Mumbai</div>
+              <div style={{ display: "flex", gap: "2rem" }}>
+                {["Privacy", "Terms", "Contact"].map((l) => <a key={l} href="#" className="footer-link">{l}</a>)}
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
